@@ -95,8 +95,11 @@ def download_cordel_image(image_url,
     
 
 
-def create_cordel_dir(path_dir):
-    os.mkdir(path_dir)
+def create_dir(path_dir):
+    try:
+        os.mkdir(path_dir)
+    except FileExistsError:
+        return
 
 
 def normatize_name_dir(name):
@@ -116,7 +119,7 @@ def save_to_json_file(filename, path_dir, cordel: Cordel):
 cordeis_urls = get_cordels_url()
 cordeis_list = []
 
-for url in cordeis_urls[0:2]:
+for url in cordeis_urls[0:5]:
     # for link in links[0:2]:
     firefox.get(url)
     image_url = get_image_url()
@@ -134,20 +137,25 @@ for url in cordeis_urls[0:2]:
 
 
 for cordel in cordeis_list:
-    name_dir = normatize_name_dir(cordel.autor)
-    file_name = name_dir + ".json"
-    path_dir = CORDEIS_SALVOS + "/" + name_dir
     
-    create_cordel_dir(path_dir)
+    autor_name_dir = normatize_name_dir(cordel.autor)
+    cordel_name_dir = normatize_name_dir(cordel.titulo)
     
-    save_to_json_file(filename=file_name,
-                      path_dir=path_dir,
+    json_file_name = cordel_name_dir + ".json"
+    autor_path_dir = CORDEIS_SALVOS + "/" + autor_name_dir
+    cordel_path_dir = autor_path_dir + "/" +cordel_name_dir
+    
+    create_dir(autor_path_dir)
+    create_dir(cordel_path_dir)
+    
+    save_to_json_file(filename=json_file_name,
+                      path_dir=cordel_path_dir,
                       cordel=cordel)
-    nome_da_capa = name_dir + "-capa"
+    nome_da_capa = cordel_name_dir + "-capa"
     
     
     download_cordel_image(
-        cordel.image_url, path_dir=path_dir, image_name=nome_da_capa)
+        cordel.image_url, path_dir=cordel_path_dir, image_name=nome_da_capa)
 
 
 # print(cordeis_list[0].texto)
