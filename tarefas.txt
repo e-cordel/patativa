@@ -1,0 +1,37 @@
+1. extrair imagens dos pdfs
+2. extrair texto de cada uma das imagen
+3. juntar textos em um json
+4. salvar o json
+
+  'https://ecordel-restapi.herokuapp.com/cordels?published=false' \
+
+
+Autenticação
+1. Fazer autenticação na API [OK]
+
+cadastro
+1. Mandar o post do autor
+   1.1 acessar location no hearder para pegar a ULR  do ID do autor (e depois pegar o ID)
+
+2. Mandar o post do cordel (com o id do autor)
+   2.1 mandar o post do cordel e o author é  "author": {"id": int}
+
+3. Mandar o post com a xilogravura (final)
+
+
+
+
+
+ ------------
+  * Ter uma classe generica pra repositorios
+  * Ter um scrap generico
+
+fonte | p1 | p2 | p3 | p4 | c1 | c2 -> post
+
+scrapper
+ getCordels : make_list
+ getCordel: cordel
+
+pdfScraper
+
+htmlScraper
