@@ -102,16 +102,3 @@ class EcordelApi:
         return id
         
 
-# import requests
-
-# url = "https://ecordel-restapi.herokuapp.com/api/v1/cordels"
-
-# payload="{\n    \"title\": \"Cordel Teste\",\n    \"description\": \"cordel teste 2\",\n    \"published\": false,\n    \"author\": {\"id\": 5},\n    \"content\": \"texto 1\"\n}"
-# headers = {
-#   'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJlLWNvcmRlbCIsInN1YiI6IjEiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE2MjcxMjkwNjIsImV4cCI6MTYyNzIxNTQ2Mn0.4BP0YT8maHaw4d9A5F9b1ePut3JPPgJtgu6WHZ7ct8E',
-#   'Content-Type': 'application/json'
-# }
-
-# response = requests.request("POST", url, headers=headers, data=payload)
-
-# print(response.text)

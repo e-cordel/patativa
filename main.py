@@ -183,16 +183,16 @@ def author_exists(authors: List[Author], author: Author):
 
 
 if __name__ == "__main__":
-    clear_tmp_dir()
-    api = create_api()
-    autores_cadastrados = file_helpers.load_json("autores_cadastrados.json")
-    cordeis = return_all_cordels_from_json_files()
+    # clear_tmp_dir()
+    # api = create_api()
+    # autores_cadastrados = file_helpers.load_json("autores_cadastrados.json")
+    # cordeis = return_all_cordels_from_json_files()
 
-    for cordel in cordeis:
-        author_id = autores_cadastrados[cordel.author.name]
-        cordel.description = f"Cordel {cordel.title} por {cordel.author.name}"
-        cordel.author.id = author_id
-        api.create_cordel(cordel)
+    # for cordel in cordeis:
+    #     author_id = autores_cadastrados[cordel.author.name]
+    #     cordel.description = f"Cordel {cordel.title} por {cordel.author.name}"
+    #     cordel.author.id = author_id
+    #     api.create_cordel(cordel)
     
 
 
