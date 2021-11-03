@@ -181,40 +181,39 @@ def author_exists(authors: List[Author], author: Author):
         return False
 
 
+def download_cordeis_netmundi():
+    
+    pass
+
+
+def step_1():
+    # Para recadastrar os autores, deixar epenas {} no arquivo autores_cadastrados.json
+    cordeis = return_all_cordels_from_json_files()
+    autores = []
+    api = create_api()
+    autores_cadastrados = file_helpers.load_json("autores_cadastrados.json")
+
+    for cordel in cordeis:
+        autores.append(cordel.author)
+    
+    autores_cadastrados = create_all_authors(autores, api=api, authors_created=autores_cadastrados)
+
+    file_helpers.save_json(autores_cadastrados,"autores_cadastrados.json" )
+
+def step_2():
+    
+    clear_tmp_dir()
+    api = create_api()
+    autores_cadastrados = file_helpers.load_json("autores_cadastrados.json")
+    cordeis = return_all_cordels_from_json_files()
+    for cordel in cordeis:
+        author_id = autores_cadastrados[cordel.author.name]
+        cordel.description = f"Cordel {cordel.title} por {cordel.author.name}"
+        cordel.author.id = author_id
+        api.create_cordel(cordel)
+    
+
 
 if __name__ == "__main__":
-    # clear_tmp_dir()
-    # api = create_api()
-    # autores_cadastrados = file_helpers.load_json("autores_cadastrados.json")
-    # cordeis = return_all_cordels_from_json_files()
-
-    # for cordel in cordeis:
-    #     author_id = autores_cadastrados[cordel.author.name]
-    #     cordel.description = f"Cordel {cordel.title} por {cordel.author.name}"
-    #     cordel.author.id = author_id
-    #     api.create_cordel(cordel)
-    
-
-
-
-
-    # autores = []
-    # for cordel in cordeis:
-    #     autores.append(cordel.author)
-    
-    # autores_cadastrados = create_all_authors(autores, api=api, authors_created=autores_cadastrados)
-
-    # file_helpers.save_json(autores_cadastrados,"autores_cadastrados.json" )
-    
-
-
-    # author = Author(name="Author main 1")
-    
-    # new_author = api.create_author(author)
-    # cordel = Cordel(author=new_author, title="Teste main",
-    #                 content="Content teste main", description="Description Teste main")
-    # new_cordel = api.create_cordel(cordel)
-    # cordeis = return_all_cordels_from_json_files()
-    print(cordeis)
-    
-
+    step_1()
+    # step_2()
