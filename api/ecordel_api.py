@@ -1,8 +1,10 @@
-
 from typing import Dict, Type
+
 import requests
-from models.cordel import Author
+from requests.api import head
+
 from models import Cordel
+from models.cordel import Author
 
 
 class APISession:
@@ -17,11 +19,10 @@ class APISession:
 
 
 class APIAuthenticator:
-
-    def __init__(self, username: str, password: str, api_url: str) -> None:
+    def __init__(self, username: str, password: str, endpoint_url_auth: str) -> None:
         self.username = username
         self.password = password
-        self.api_url = api_url
+        self.api_url = endpoint_url_auth
 
     def authenticate(self) -> APISession:
 
@@ -39,31 +40,32 @@ class APIAuthenticator:
 
 
 class EcordelApi:
-    def __init__(self, api_session: APISession, api_url: str) -> None:
+    def __init__(self, api_session: APISession, api_base_url: str) -> None:
         self.api_session = api_session
-        self.api_url = api_url
+        self.api_url = api_base_url
 
     def create_author(self, author: Author) -> Author:
         endpoint = "authors"
         endpoint_url = f"{self.api_url}/{endpoint}"
-
         body = author.to_json()
+        headers = {"Authorization": f"Bearer {self.api_session.token}"}
 
         response = requests.post(
-            headers={"Authorization": f"Bearer {self.api_session.token}"},
-            url=endpoint_url, json=body)
-        
+            headers=headers,
+            url=endpoint_url,
+            json=body,
+        )
+
         if response.status_code == 201:
-            location = response.headers['Location']
-            author_id = self.__extract_resource_id(location=location)
+            author_id = self.__extract_id_from_response(response)
             new_author = Author(id=author_id, name=author.name)
             return new_author
         else:
-            raise Exception('Erro ao Criar autor.')
+            raise Exception("Erro ao Criar novo Autor.")
 
     def create_cordel(self, cordel: Cordel) -> Cordel:
         """
-        Cria um novo cordel na API. 
+        Cria um novo cordel na API.
 
         Args:
             cordel (Cordel): Um cordel completo, incluindo o autor  com ID.
@@ -77,28 +79,22 @@ class EcordelApi:
 
         endpoint = "cordels"
         endpoint_url = f"{self.api_url}/{endpoint}"
-
         body = cordel.to_json()
+        headers = {"Authorization": f"Bearer {self.api_session.token}"}
 
-        response = requests.post(
-            headers={"Authorization": f"Bearer {self.api_session.token}"},
-            url=endpoint_url, json=body)
+        response = requests.post(headers=headers, url=endpoint_url, json=body)
 
         if response.status_code == 201:
-            location = response.headers['Location']
-            new_cordel_id = self.__extract_resource_id(location=location)
-            cordel.id = new_cordel_id
+            cordel_id = self.__extract_id_from_response(response)
+            cordel.id = cordel_id
             return cordel
         else:
-            raise Exception('Erro ao criar o cordel.')
-
+            raise Exception("Erro ao criar o cordel.")
 
     def create_xilogravura(self, xilogravura):
         pass
 
-
-    def __extract_resource_id(self, location=str):
+    def __extract_id_from_response(self, response, location=str):
+        location = response.headers["Location"]
         id = location.split("/")[-1]
         return id
-        
-

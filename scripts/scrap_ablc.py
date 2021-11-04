@@ -1,16 +1,17 @@
-import time
-import os
 import json
-import requests
+import os
+import time
 from typing import List
-from models import Cordel
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-import unidecode
 
+import requests
+import unidecode
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+from models import Cordel
 
 BASE_URL = "http://www.ablc.com.br/o-cordel/cordeis-digitalizados/"
 CURRENT_DIRECTORY = os.getcwd()

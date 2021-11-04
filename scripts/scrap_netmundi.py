@@ -9,6 +9,6 @@
 
 from api.repository_netmundi import RepositoryNetMundi
 
-rnm = RepositoryNetMundi()
-cordeis_links = rnm.get_cordeis()
-rnm.download_cordeis(cordeis_links)
+repository_netmundi = RepositoryNetMundi()
+cordeis_links = repository_netmundi.get_cordeis()
+repository_netmundi.download_cordeis(cordeis_links)
