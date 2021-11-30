@@ -1,5 +1,3 @@
-from enum import auto
-import json
 from models.author import Author
 import os
 from api import ecordel_api
@@ -14,8 +12,7 @@ from config import CORDEIS_SOURCE_DIR
 from config import API_AUTH_URL
 from config import API_URL
 from config import CORDEIS_NETMUNDI_JSON_DIR
-from extractors import parse_pdf_to_images, extract_text_from_images
-from helper import file_helpers
+# from helper import file_helpers
 from models import Cordel
 
 
@@ -223,5 +220,6 @@ if __name__ == "__main__":
 
     netmundi_repository = RepositoryNetMundi()
     cordeis = netmundi_repository.get_cordeis()
+    print(cordeis)
     
     # setup.tear_down()
