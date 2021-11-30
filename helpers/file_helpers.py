@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List
 
-from models import Cordel
+from models.cordel import Cordel
 from models.author import Author
 
 

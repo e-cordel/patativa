@@ -11,8 +11,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
+from helpers import parse_pdf_to_images, parse_image_to_text, extract_text_from_images
 from models import Cordel
+from models.author import Author
 from repositories.repository_interface import RepositoryInterface
 
 
@@ -63,11 +64,14 @@ class RepositoryNetMundi(RepositoryInterface):
 
     def __process(
         self,
-    ):
+    ) -> List[Dict]:
         links = self.__get_cordeis_links()
         self.download_pdf_cordeis(links)
         path_pdf_files = self.get_path_pdf_files()
-        cordeis = self.create_cordel_from_path()
+        cordeis = [self.create_cordel_from_path(
+            cordel_file) for cordel_file in path_pdf_files]
+        
+        return [cordel.to_json() for cordel in cordeis]
 
     def get_cordeis(self) -> List[Cordel]:
         self.__process()
@@ -107,7 +111,7 @@ class RepositoryNetMundi(RepositoryInterface):
         if url.find("/"):
             return url.rsplit("/", 1)[1]
 
-    def extract_name(file_path: str):
+    def __extract_name(self, file_path: str):
         """
         Separa o nome do arquivo da extensão e retorna somente o nome do arquivo.
 
@@ -120,7 +124,7 @@ class RepositoryNetMundi(RepositoryInterface):
         filename = file_path.split(".")[0].split("/")[-1]
         return filename
 
-    def extract_autor_name(self, file_path: str):
+    def __extract_autor_name(self, file_path: str):
         """ Extrai o nome do autor do cordel baseado no nome do arquiv.
 
         Args:
@@ -130,10 +134,10 @@ class RepositoryNetMundi(RepositoryInterface):
             str: nome do autor do cordel.
         """
         import re
-        filename = extract_name(file_path)
+        filename = self.__extract_name(file_path)
         return re.split(string=filename, pattern="Literatura-de-Cordel-por", flags=re.IGNORECASE)[1].replace("-", " ").strip()
 
-    def extract_cordel_name(file_path: str) -> str:
+    def __extract_cordel_name(self, file_path: str) -> str:
         """
         Extrai o título/nome do cordel baseado no nome do arquivo.
         Args:
@@ -143,7 +147,7 @@ class RepositoryNetMundi(RepositoryInterface):
             str: título/nome do cordel. ex.: meu-cordel
         """
         import re
-        filename = extract_name(file_path)
+        filename = self.__extract_name(file_path)
         return re.split(string=filename, pattern="Literatura-de-Cordel-por", flags=re.IGNORECASE)[0].replace("-", " ").strip()
 
     def get_path_pdf_files(self):
@@ -161,8 +165,8 @@ class RepositoryNetMundi(RepositoryInterface):
         Cria um objeto do tipo Cordel a partir de um pdf.
         """
         import gc
-        autor_name = extract_autor_name(path)
-        cordel_name = extract_cordel_name(path)
+        autor_name = self.__extract_autor_name(path)
+        cordel_name = self.__extract_cordel_name(path)
         images = parse_pdf_to_images(file_path=path)
         cordel_text = extract_text_from_images(images)
         cordel = Cordel(author=Author(name=autor_name),
