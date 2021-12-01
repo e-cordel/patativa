@@ -51,10 +51,14 @@ class RepositoryNetMundi(RepositoryInterface):
         links = self.__get_cordeis_links()
         self.__download_pdf_cordeis(links)
         path_pdf_files = self.__get_path_pdf_files()
-        cordeis = [
-            self.__create_cordel_from_path(cordel_file)
-            for cordel_file in path_pdf_files
-        ]
+        cordeis = []
+        for cordel_file in path_pdf_files:
+            try:
+                cordel = self.__create_cordel_from_path(cordel_file)
+                cordel.link_fonte = self.base_url
+                cordeis.append(cordel)
+            except:
+                pass
 
         return cordeis
 
