@@ -1,4 +1,4 @@
-from typing import Dict, Type
+from typing import Dict, List, Type
 
 import requests
 from requests.api import head
@@ -40,15 +40,20 @@ class APIAuthenticator:
 
 
 class EcordelApi:
-    def __init__(self, api_session: APISession, api_base_url: str) -> None:
-        self.api_session = api_session
+    def __init__(self, sesssion: APISession, api_base_url: str) -> None:
+        self.session = sesssion
         self.api_url = api_base_url
+
+    def get_authors(
+        self,
+    ) -> List[Author]:
+        raise NotImplementedError
 
     def create_author(self, author: Author) -> Author:
         endpoint = "authors"
         endpoint_url = f"{self.api_url}/{endpoint}"
         body = author.to_json()
-        headers = {"Authorization": f"Bearer {self.api_session.token}"}
+        headers = {"Authorization": f"Bearer {self.session.token}"}
 
         response = requests.post(
             headers=headers,
@@ -80,7 +85,7 @@ class EcordelApi:
         endpoint = "cordels"
         endpoint_url = f"{self.api_url}/{endpoint}"
         body = cordel.to_json()
-        headers = {"Authorization": f"Bearer {self.api_session.token}"}
+        headers = {"Authorization": f"Bearer {self.session.token}"}
 
         response = requests.post(headers=headers, url=endpoint_url, json=body)
 

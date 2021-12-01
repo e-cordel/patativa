@@ -1,6 +1,7 @@
-from pdf2image import convert_from_path
 from typing import List
+
 import pytesseract as ocr
+from pdf2image import convert_from_path
 from PIL import Image
 
 

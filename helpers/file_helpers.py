@@ -1,8 +1,8 @@
 import json
 from typing import Dict, List
 
-from models.cordel import Cordel
 from models.author import Author
+from models.cordel import Cordel
 
 
 def save_images(pages: List, destination_dir: str) -> None:
