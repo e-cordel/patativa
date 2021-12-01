@@ -40,6 +40,7 @@ class Cordel:
             "description": self.description,
             "published": False,
             "content": content,
+            "fonte": self.link_fonte if self.link_fonte else ""
         }
 
     @staticmethod
