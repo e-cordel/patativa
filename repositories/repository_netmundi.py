@@ -1,17 +1,12 @@
-import json
 import os
-import time
 from typing import Dict, List
 
 import requests
-import unidecode
 from fake_useragent import UserAgent
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from helpers import parse_pdf_to_images, parse_image_to_text, extract_text_from_images
+
+from helpers import extract_text_from_images, parse_pdf_to_images
 from models import Cordel
 from models.author import Author
 from repositories.repository_interface import RepositoryInterface
@@ -34,7 +29,7 @@ class RepositoryNetMundi(RepositoryInterface):
         return self.__base_url
 
     def __create_pdf_and_json_folder(self) -> Dict:
-        download_folder = os.getenv('DOWNLOAD_FOLDER')
+        download_folder = os.getenv("DOWNLOAD_FOLDER")
         pdf_folder = f"{download_folder}/pdf"
         json_folder = f"{download_folder}/json"
 
@@ -50,42 +45,25 @@ class RepositoryNetMundi(RepositoryInterface):
         except FileExistsError:
             self.__json_folder = json_folder
 
-    # def step_1():
-    #     # Para recadastrar os autores, deixar epenas {} no arquivo autores_cadastrados.json
-    #     cordeis = return_all_cordels_from_json_files()
-    #     autores = []
-    #     api = create_api()
-    #     autores_cadastrados = file_helpers.load_json(
-    #         "autores_cadastrados.json")
-
-    #     for cordel in cordeis:
-    #         autores.append(cordel.author)
-
-    #     autores_cadastrados = create_all_authors(
-    #         autores, api=api, authors_created=autores_cadastrados)
-
-    #     file_helpers.save_json(autores_cadastrados, "autores_cadastrados.json")
-
     def __process(
         self,
-    ) -> List[Dict]:
+    ) -> List[Cordel]:
         links = self.__get_cordeis_links()
         self.__download_pdf_cordeis(links)
         path_pdf_files = self.__get_path_pdf_files()
-        cordeis = [self.__create_cordel_from_path(
-            cordel_file) for cordel_file in path_pdf_files]
-        
-        for cordel in cordeis:
-            cordel.link_fonte = self.base_url
-        
-        return [cordel.to_json() for cordel in cordeis]
+        cordeis = [
+            self.__create_cordel_from_path(cordel_file)
+            for cordel_file in path_pdf_files
+        ]
 
-    def get_cordeis(self) -> List[Dict]:
+        return cordeis
+
+    def get_cordeis(self) -> List[Cordel]:
         """
         Return all cordeis in json format
 
         Returns:
-            List['Dict']: 
+            List['Dict']:
         """
         return self.__process()
 
@@ -118,7 +96,7 @@ class RepositoryNetMundi(RepositoryInterface):
             with open(f"{download_folder}/{filename}", "wb") as f:
                 f.write(r.content)
                 # TODO: remover break após finalizar implementação do repositório
-                break
+                # break
 
     def __get_filename(self, url):
         if url.find("/"):
@@ -138,7 +116,7 @@ class RepositoryNetMundi(RepositoryInterface):
         return filename
 
     def __extract_autor_name(self, file_path: str):
-        """ Extrai o nome do autor do cordel baseado no nome do arquiv.
+        """Extrai o nome do autor do cordel baseado no nome do arquiv.
 
         Args:
             file_path (str): caminho do arquivo .pdf.
@@ -147,8 +125,15 @@ class RepositoryNetMundi(RepositoryInterface):
             str: nome do autor do cordel.
         """
         import re
+
         filename = self.__extract_name(file_path)
-        return re.split(string=filename, pattern="Literatura-de-Cordel-por", flags=re.IGNORECASE)[1].replace("-", " ").strip()
+        return (
+            re.split(
+                string=filename, pattern="Literatura-de-Cordel-por", flags=re.IGNORECASE
+            )[1]
+            .replace("-", " ")
+            .strip()
+        )
 
     def __extract_cordel_name(self, file_path: str) -> str:
         """
@@ -160,8 +145,15 @@ class RepositoryNetMundi(RepositoryInterface):
             str: título/nome do cordel. ex.: meu-cordel
         """
         import re
+
         filename = self.__extract_name(file_path)
-        return re.split(string=filename, pattern="Literatura-de-Cordel-por", flags=re.IGNORECASE)[0].replace("-", " ").strip()
+        return (
+            re.split(
+                string=filename, pattern="Literatura-de-Cordel-por", flags=re.IGNORECASE
+            )[0]
+            .replace("-", " ")
+            .strip()
+        )
 
     def __get_path_pdf_files(self):
         """
@@ -174,17 +166,18 @@ class RepositoryNetMundi(RepositoryInterface):
         return path_pdf_files
 
     def __create_cordel_from_path(self, path: str) -> Cordel:
-        """"
+        """ "
         Cria um objeto do tipo Cordel a partir de um pdf.
         """
         import gc
+
         autor_name = self.__extract_autor_name(path)
         cordel_name = self.__extract_cordel_name(path)
         images = parse_pdf_to_images(file_path=path)
         cordel_text = extract_text_from_images(images)
-        cordel = Cordel(author=Author(name=autor_name),
-                        title=cordel_name,
-                        content=cordel_text)
+        cordel = Cordel(
+            author=Author(name=autor_name), title=cordel_name, content=cordel_text
+        )
 
         images = None
         autor_name = None
@@ -192,43 +185,3 @@ class RepositoryNetMundi(RepositoryInterface):
         cordel_text = None
         gc.collect()
         return cordel
-
-    # def create_json_filename(self, cordel: Cordel) -> str:
-    #     """
-    #     Cria um padrão de nome com a extensão em .json baseado no título do cordel.
-
-    #     Args:
-    #         cordel (Cordel): [description]
-
-    #     Returns:
-    #         str: nome do arquivo json. Ex.: meu-cordel.json
-    #     """
-    #     filename = cordel.title.replace(' ', '-')
-    #     return filename + ".json"
-
-    # def parse_pdfs_to_json():
-    #     """
-    #     Lê cada cordel em PDF em um diretório, parseia e salva em um arquivo json.
-    #     """
-    #     pdf_paths = list_pdf_paths()
-    #     for pdf_path in pdf_paths:
-    #         try:
-    #             cordel = create_cordel_from_path(path=pdf_path)
-    #             file_helpers.save_cordel_json(
-    #                 cordel=cordel,
-    #                 filename=create_json_filename(cordel),
-    #                 path_dir=CORDEIS_NETMUNDI_JSON_DIR
-    #             )
-
-    #         except:
-    #             pass
-
-    # def return_all_cordels_from_json_files() -> List[Cordel]:
-    #     cordeis_files = os.listdir(CORDEIS_NETMUNDI_JSON_DIR)
-    #     cordeis = []
-    #     for file in cordeis_files:
-    #         file_path = f'{CORDEIS_NETMUNDI_JSON_DIR}/{file}'
-    #         cordel_loaded = file_helpers.load_cordel_from_json_file(file_path)
-    #         cordeis.append(cordel_loaded)
-
-    #     return cordeis

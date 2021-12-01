@@ -5,8 +5,6 @@ from models import Cordel
 
 
 class RepositoryInterface(ABC):
-    
-    
     def get_cordeis(self) -> List[Cordel]:
         raise NotImplementedError()
 
