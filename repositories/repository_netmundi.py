@@ -54,9 +54,9 @@ class RepositoryNetMundi(RepositoryInterface):
         cordeis = []
         for cordel_file in path_pdf_files:
             try:
-                cordel = self.__create_cordel_from_path(cordel_file)
+                cordel = self.__create_cordel_from_pdf(cordel_file)
                 cordel.link_fonte = self.base_url
-                cordeis.append(cordel)
+                cordeis.append(cordel)                
             except:
                 pass
 
@@ -101,7 +101,7 @@ class RepositoryNetMundi(RepositoryInterface):
                 f.write(r.content)
                 # TODO: remover break após finalizar implementação do repositório
                 # break
-
+            
     def __get_filename(self, url):
         if url.find("/"):
             return url.rsplit("/", 1)[1]
@@ -169,7 +169,7 @@ class RepositoryNetMundi(RepositoryInterface):
         path_pdf_files = [f"{self.__pdf_folder}/{file}" for file in files]
         return path_pdf_files
 
-    def __create_cordel_from_path(self, path: str) -> Cordel:
+    def __create_cordel_from_pdf(self, path: str) -> Cordel:
         """ "
         Cria um objeto do tipo Cordel a partir de um pdf.
         """
