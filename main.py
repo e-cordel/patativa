@@ -47,6 +47,14 @@ def author_exists(authors: List[Author], author: Author):
     else:
         return False
 
+def search_author_by_name(authors: List[Author], author: Author):
+    for a in authors:
+        if unidecode(a.name.lower()) == unidecode(author.name.lower()):
+            return a
+    
+    return None
+
+
 
 # def step_1():
 #     # Para recadastrar os autores, deixar epenas {} no arquivo autores_cadastrados.json
@@ -73,8 +81,21 @@ if __name__ == "__main__":
     api = create_api()
     repository = RepositoryNetMundi()
     cordeis = repository.get_cordeis()
+    authors_created = []
 
+    
     for cordel in cordeis:
-        save_json(cordel.to_json(), f"{download_dir}/json/{cordel.title}.json")
-
+        try:
+            if not author_exists(authors=authors_created, author=cordel.author):
+                new_author = api.create_author(author=cordel.author)
+                authors_created.append(new_author)
+                cordel.author = new_author
+                api.create_cordel(cordel=cordel)
+            else:
+                existent_author = search_author_by_name(authors=authors_created,author=cordel.author)
+                cordel.author = existent_author
+                api.create_cordel(cordel=cordel)
+        except:
+            pass
+    
     # setup.finalize()

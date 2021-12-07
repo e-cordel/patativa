@@ -37,7 +37,7 @@ class Cordel:
                 "id": self.author.id if self.author.id else -1,
                 "name": self.author.name,
             },
-            "description": self.description,
+            "description": self.description if self.description else self.title,
             "published": False,
             "content": content,
             "fonte": self.link_fonte if self.link_fonte else "",
