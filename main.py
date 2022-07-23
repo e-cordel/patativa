@@ -47,28 +47,13 @@ def author_exists(authors: List[Author], author: Author):
     else:
         return False
 
+
 def search_author_by_name(authors: List[Author], author: Author):
     for a in authors:
         if unidecode(a.name.lower()) == unidecode(author.name.lower()):
             return a
-    
+
     return None
-
-
-
-# def step_1():
-#     # Para recadastrar os autores, deixar epenas {} no arquivo autores_cadastrados.json
-#     cordeis = return_all_cordels_from_json_files()
-#     autores = []
-#     api = create_api()
-#     autores_cadastrados = file_helpers.load_json("autores_cadastrados.json")
-
-#     for cordel in cordeis:
-#         autores.append(cordel.author)
-
-#     autores_cadastrados = create_all_authors(autores, api=api, authors_created=autores_cadastrados)
-
-#     file_helpers.save_json(autores_cadastrados,"autores_cadastrados.json" )
 
 
 from repositories import RepositoryNetMundi
@@ -83,7 +68,6 @@ if __name__ == "__main__":
     cordeis = repository.get_cordeis()
     authors_created = []
 
-    
     for cordel in cordeis:
         try:
             if not author_exists(authors=authors_created, author=cordel.author):
@@ -92,10 +76,14 @@ if __name__ == "__main__":
                 cordel.author = new_author
                 api.create_cordel(cordel=cordel)
             else:
-                existent_author = search_author_by_name(authors=authors_created,author=cordel.author)
+                existent_author = search_author_by_name(
+                    authors=authors_created, author=cordel.author
+                )
                 cordel.author = existent_author
                 api.create_cordel(cordel=cordel)
         except:
             pass
-    
+
     # setup.finalize()
+#  TODO: implementar log de andamento.
+# TODO: modificar fluxo pra fazer post individual de cada cordel
