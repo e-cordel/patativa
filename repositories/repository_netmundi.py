@@ -28,40 +28,6 @@ class RepositoryNetMundi(RepositoryInterface):
     def base_url(self):
         return self.__base_url
 
-    def __create_pdf_and_json_folder(self) -> Dict:
-        download_folder = os.getenv("DOWNLOAD_FOLDER")
-        pdf_folder = f"{download_folder}/pdf"
-        json_folder = f"{download_folder}/json"
-
-        try:
-            os.mkdir(pdf_folder)
-            self.__pdf_folder = pdf_folder
-        except FileExistsError:
-            self.__pdf_folder = pdf_folder
-
-        try:
-            os.mkdir(json_folder)
-            self.__json_folder = json_folder
-        except FileExistsError:
-            self.__json_folder = json_folder
-
-    def __process(
-        self,
-    ) -> List[Cordel]:
-        links = self.__get_cordeis_links()
-        self.__download_pdf_cordeis(links)
-        path_pdf_files = self.__get_path_pdf_files()
-        cordeis = []
-        for cordel_file in path_pdf_files:
-            try:
-                cordel = self.__create_cordel_from_pdf(cordel_file)
-                cordel.link_fonte = self.base_url
-                cordeis.append(cordel)                
-            except:
-                pass
-
-        return cordeis
-
     def get_cordeis(self) -> List[Cordel]:
         """
         Return all cordeis in json format
@@ -69,7 +35,31 @@ class RepositoryNetMundi(RepositoryInterface):
         Returns:
             List['Dict']:
         """
-        return self.__process()
+        return self.__process_by_number()
+
+
+    def __process_by_number(
+        self,
+    ) -> List[Cordel]:
+        links = self.__get_cordeis_links()
+        self.__download_pdf_cordeis(links)
+        path_pdf_files = self.__get_path_pdf_files()
+        cordeis = []
+        count = 1
+        total = len(path_pdf_files)
+        for cordel_file in path_pdf_files:
+            print(f"Processando [{count}/{total}]")
+            try:
+                cordel = self.__create_cordel_from_pdf(cordel_file)
+                cordel.link_fonte = self.base_url
+                cordeis.append(cordel)
+                count = count + 1                
+            except:
+                pass
+        
+        print(f"Processados {count} de {total} cordeis.")
+        return cordeis
+
 
     def __get_cordeis_links(self) -> List[str]:
         cordeis = self.firefox.find_elements_by_tag_name("li")
@@ -95,29 +85,16 @@ class RepositoryNetMundi(RepositoryInterface):
 
         for link in links:
             r = requests.get(link, headers={"User-Agent": user_agent_string})
-            filename = self.__get_filename(link)
+            filename = self.__create_filename_from_url(link)
 
             with open(f"{download_folder}/{filename}", "wb") as f:
                 f.write(r.content)
-                # TODO: remover break após finalizar implementação do repositório
-                # break
+
             
-    def __get_filename(self, url):
+    def __create_filename_from_url(self, url: str) -> str:
         if url.find("/"):
             return url.rsplit("/", 1)[1]
 
-    def __extract_name(self, file_path: str):
-        """
-        Separa o nome do arquivo da extensão e retorna somente o nome do arquivo.
-
-        Args:
-            file_path (str): caminho do arquivo
-
-        Returns:
-            str: Nome do arquivo sem a extensão.
-        """
-        filename = file_path.split(".")[0].split("/")[-1]
-        return filename
 
     def __extract_autor_name(self, file_path: str):
         """Extrai o nome do autor do cordel baseado no nome do arquiv.
@@ -159,6 +136,20 @@ class RepositoryNetMundi(RepositoryInterface):
             .strip()
         )
 
+    def __extract_name(self, file_path: str):
+        """
+        Separa o nome do arquivo da extensão e retorna somente o nome do arquivo.
+
+        Args:
+            file_path (str): caminho do arquivo
+
+        Returns:
+            str: Nome do arquivo sem a extensão.
+        """
+        filename = file_path.split(".")[0].split("/")[-1]
+        return filename
+
+
     def __get_path_pdf_files(self):
         """
         Lista todos os arquivos no diretório CORDEIS_SOURCE_DIR
@@ -189,3 +180,20 @@ class RepositoryNetMundi(RepositoryInterface):
         cordel_text = None
         gc.collect()
         return cordel
+
+    def __create_pdf_and_json_folder(self) -> Dict:
+        download_folder = os.getenv("DOWNLOAD_FOLDER")
+        pdf_folder = f"{download_folder}/pdf"
+        json_folder = f"{download_folder}/json"
+
+        try:
+            os.mkdir(pdf_folder)
+            self.__pdf_folder = pdf_folder
+        except FileExistsError:
+            self.__pdf_folder = pdf_folder
+
+        try:
+            os.mkdir(json_folder)
+            self.__json_folder = json_folder
+        except FileExistsError:
+            self.__json_folder = json_folder

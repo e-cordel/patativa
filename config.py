@@ -1,4 +1,2 @@
-import os
-
-API_AUTH_URL = "https://ecordel-restapi.herokuapp.com/api/v1/auth"
-API_URL = "https://ecordel-restapi.herokuapp.com/api/v1"
+API_URL = "http://ecordel-api.sa-east-1.elasticbeanstalk.com/api/v1"
+API_AUTH_URL = f"{API_URL}/auth"
