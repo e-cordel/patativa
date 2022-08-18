@@ -12,6 +12,8 @@ build/
 develop-eggs/
 dist/
 downloads/
+downloads/pdf
+tmp
 eggs/
 .eggs/
 lib/
