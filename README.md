@@ -1,6 +1,17 @@
 ## Configurando o ambiente do projeto
 
 
+- Requisitos
+    - Python 3.11
+    - Pip
+    - Virtualenv
+    - tesseract-ocr
+    - selenium (webdriver) v 0.33, disponivel neste link  https://selenium-python.readthedocs.io/installation.html#drivers
+        - neste projeto utilizamos o firefox.
+
+
+
+# 
 - Crie um ambiente virtual via venv do python
 ```
 python3 -m venv venv
@@ -13,6 +24,19 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
+- Se você estiver utilizando o windows, o comando para habilitar o ambiente virtual é diferente
+
+```
+venv\Scripts\activate.bat
+```
+
+- Instalar as dependências do projeto
+
+```
+pip install -r requirements.txt
+```
+
+
 
 ## Configuração: URL Da API
 
@@ -20,7 +44,15 @@ No arquivo config.py setar a variável API_URL
 
 
 ## Configurar o .env com usuario e senha da api
-- Setar o usuário e senha no ambiente
+
+- Renomeie o arquivo .env-template para .env
+ ```
+    $mv .env-template .env
+```
+- Abra o arquivo e preencha os campos com o usuário e senha da API
+
+
+- Setar o usuário e senha nas variáveis de ambiente
  ```
     $export `cat .env`
 ```

@@ -10,7 +10,7 @@ from helpers import extract_text_from_images, parse_pdf_to_images
 from models import Cordel
 from models.author import Author
 from repositories.repository_interface import RepositoryInterface
-
+from selenium.webdriver.common.by import By
 
 class RepositoryNetMundi(RepositoryInterface):
     def __init__(self) -> None:
@@ -62,11 +62,11 @@ class RepositoryNetMundi(RepositoryInterface):
 
 
     def __get_cordeis_links(self) -> List[str]:
-        cordeis = self.firefox.find_elements_by_tag_name("li")
+        cordeis = self.firefox.find_elements(By.TAG_NAME, 'li') 
         links = []
         for li in cordeis:
             try:
-                element = li.find_element_by_tag_name("a")
+                element = li.find_elements(By.TAG_NAME,"a")
                 if element:
                     link = element.get_attribute("href")
                     if link.split(".")[-1].lower() == "pdf":
