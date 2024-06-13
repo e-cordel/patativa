@@ -7,6 +7,8 @@ from api.ecordel_api import APIAuthenticator, EcordelApi
 from config import API_AUTH_URL, API_URL
 from helpers.file_helpers import save_json
 from models.author import Author
+from setup import Setup
+from repositories import RepositoryNetMundi
 
 
 def create_api() -> EcordelApi:
@@ -56,14 +58,10 @@ def search_author_by_name(authors: List[Author], author: Author):
     return None
 
 
-from repositories import RepositoryNetMundi
-from setup import Setup
+def scrap_netMundi(api: EcordelApi):
+    # TODO: implementar log de andamento.
+    # TODO: modificar fluxo pra fazer post individual de cada cordel
 
-if __name__ == "__main__":
-    setup = Setup()
-    setup.init()
-    download_dir = os.getenv("DOWNLOAD_FOLDER")
-    api = create_api()
     repository = RepositoryNetMundi()
     cordeis = repository.get_cordeis()
     authors_created = []
@@ -84,6 +82,13 @@ if __name__ == "__main__":
         except:
             pass
 
-    # setup.finalize()
-#  TODO: implementar log de andamento.
-# TODO: modificar fluxo pra fazer post individual de cada cordel
+if __name__ == "__main__":
+    setup = Setup()
+    setup.init()
+    download_dir = os.getenv("DOWNLOAD_FOLDER")
+    api = create_api()
+
+    
+
+    #scrap_netMundi(api)
+    #setup.finalize()

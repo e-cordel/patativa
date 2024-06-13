@@ -7,10 +7,12 @@ class Setup:
         current_directory = os.getcwd()
         self.tmp_workdir = f"{current_directory}/tmp"
         self.download_folder = None
+        self.epub_folder_folder = None
 
     def init(self):
         self.__create_tmp_dir()
         self.__create_download_folder()
+        self.__create_epub_folder()
         os.environ["DOWNLOAD_FOLDER"] = self.download_folder
         os.environ["TMP_WORKDIR"] = self.tmp_workdir
 
@@ -30,6 +32,14 @@ class Setup:
             self.download_folder = download_folder
         except FileExistsError:
             self.download_folder = download_folder
+    
+    def __create_epub_folder(self):
+        epub_folder = f"{self.tmp_workdir}/epub"
+        try:
+            os.mkdir(epub_folder)
+            self.epub_folder = epub_folder
+        except FileExistsError:
+            self.epub_folder = epub_folder
 
     def __clear_tmp_dir(self):
 
