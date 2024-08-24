@@ -1,13 +1,15 @@
 # TODO: integrage this module with the project
+# usage python epub.py <ftp-user> <ftp-password>
 
 import json
 import logging
 import requests
 import subprocess
 import os
+import ftplib
+import sys
 
 from ebooklib import epub
-from PIL import Image
 from config import API_URL
 
 # logging configurations
@@ -15,6 +17,9 @@ logging.basicConfig(level=logging.NOTSET)
 
 # constants definition
 PT_BR = 'pt-BR'
+HOSTNAME = "ftp.turismonocariri.com.br"
+USERNAME = sys.argv[1]
+PASSWORD = sys.argv[2]
 
 # request configuration
 # it is necessary to avoid 406 error code when requesting the xilogravura image
@@ -99,12 +104,12 @@ def create_epub(id: int):
     cordel.add_item(epub.EpubNcx())
     cordel.add_item(epub.EpubNav())
 
-    # write to the file
-    epub_file = f"epub/{cordel_data['id']}.epub"
+    # write contents to the file
+    normalized_name = str(cordel_data['title']).lower().replace(' ','-')
+    epub_file = f"epub/{normalized_name}.epub"
     epub.write_epub(epub_file, cordel)
     logging.info(f"new epub created {epub_file}")
     return epub_file
-
 
 def validate_epub(epub_file: str):
     logging.info(f"validating epub {epub_file}...")
@@ -117,14 +122,34 @@ def validate_epub(epub_file: str):
 
     subprocess.run(['java','-jar', epub_check_jar, epub_file])
 
+def upload_epub(epub_file: str):
+    logging.info(f"uploading cordel {epub_file}...")
+    ftp_server = ftplib.FTP(HOSTNAME, USERNAME, PASSWORD)
+    ftp_server.encoding = "utf-8"
+    
+    with open(epub_file, "rb") as file:
+        # Command for Uploading the file "STOR filename"
+        ftp_server.storbinary(f"STOR {epub_file.split('/')[1]}", file)
+
+    ftp_server.quit()
+    return f"https://ebooks.ecordel.com.br/{epub_file.split('/')[1]}"
+
+def update_epub_link(epub_link: str):
+    # TODO call api to update the ebook_link
+    logging.info(epub_link)
+
 # get published cordels
 logging.info("loading cordels...")
 published_cordels = json.loads(requests.get(f'{API_URL}/cordels/summaries?title=&published&size=30').text)
 
-for summary in published_cordels['content']:
-    logging.info(f"creating epub for {summary['title']}")
+for idx, summary in enumerate(published_cordels['content']):
+    logging.info(f"creating epub {idx+1}/{len(published_cordels)} for {summary['title']}")
     epub_file = create_epub(summary['id'])
     validate_epub(epub_file)
+    epub_link = upload_epub(epub_file)
+    update_epub_link(epub_link)
+    logging.info(f"epub {summary['title']} created")
+    # TODO remove break when script is done
     break
 
 logging.info("all epubs created successfully")
