@@ -3,10 +3,11 @@
 import json
 import logging
 import requests
+import subprocess
+import os
 
 from ebooklib import epub
 from PIL import Image
-
 from config import API_URL
 
 # logging configurations
@@ -29,6 +30,7 @@ def create_content(title: str, xhtml: str, file_name: str, cordel, toc):
     content.set_content(xhtml)
     cordel.add_item(content)
     toc.append(epub.Link(file_name, title, file_name))
+    return content
 
 def create_epub(id: int):
     logging.info(f"loading cordel with id {id}")
@@ -37,7 +39,6 @@ def create_epub(id: int):
     nav = []
     cordel_data = json.loads(requests.get(f'{API_URL}/cordels/{id}').text)
     logging.info(f"cordel {cordel_data['title']} loaded")
-
 
     cordel = epub.EpubBook()
     cordel.set_identifier(f"{cordel_data['id']}")
@@ -66,7 +67,8 @@ def create_epub(id: int):
 
     content_xhtml += "</section>"
 
-    create_content(cordel_data['title'], content_xhtml, 'content.xhtml', cordel, toc)
+    content = create_content(cordel_data['title'], content_xhtml, 'content.xhtml', cordel, toc)
+    nav.append(content)
 
     # Add author section
     author_xhtml = '<section epub:type="chapter">'
@@ -75,7 +77,8 @@ def create_epub(id: int):
     author_xhtml += f"<p>E-mail: <span>{author_data['email']}</span></p>"
     author_xhtml += "</section>"
 
-    create_content('Sobre o autor', author_xhtml, 'author.xhtml', cordel, toc)
+    author = create_content('Sobre o autor', author_xhtml, 'author.xhtml', cordel, toc)
+    nav.append(author)
 
     # Add e-cordel section
     ecordel_xhtml = """<section epub:type="chapter">
@@ -86,7 +89,8 @@ def create_epub(id: int):
     <p>Essa obra é também disponibilizada como um ebook para garantir que pessoas com necessidades especiais possam desfrutar também da literatura de cordel.</p>
     </section>
     """
-    create_content('Sobre o e-cordel', ecordel_xhtml, 'ecordel.xhtml', cordel, toc)
+    ecordel = create_content('Sobre o e-cordel', ecordel_xhtml, 'ecordel.xhtml', cordel, toc)
+    nav.append(ecordel)
 
     cordel.toc = tuple(toc)
     cordel.spine = ['nav', *nav]
@@ -96,8 +100,22 @@ def create_epub(id: int):
     cordel.add_item(epub.EpubNav())
 
     # write to the file
-    epub.write_epub(f"epub/{cordel_data['title']}.epub", cordel)
-    logging.info(f"new epub created {cordel_data['title']}.epub")
+    epub_file = f"epub/{cordel_data['id']}.epub"
+    epub.write_epub(epub_file, cordel)
+    logging.info(f"new epub created {epub_file}")
+    return epub_file
+
+
+def validate_epub(epub_file: str):
+    logging.info(f"validating epub {epub_file}...")
+    epub_check_jar = 'epubcheck-5.1.0/epubcheck.jar'
+    if not os.path.exists(epub_check_jar):
+        r = requests.get('https://github.com/w3c/epubcheck/releases/download/v5.1.0/epubcheck-5.1.0.zip')
+        with open("epubcheck.zip", 'wb') as f:
+            f.write(r.content)
+        subprocess.run(['unzip', '-a', 'epubcheck.zip'])
+
+    subprocess.run(['java','-jar', epub_check_jar, epub_file])
 
 # get published cordels
 logging.info("loading cordels...")
@@ -105,6 +123,8 @@ published_cordels = json.loads(requests.get(f'{API_URL}/cordels/summaries?title=
 
 for summary in published_cordels['content']:
     logging.info(f"creating epub for {summary['title']}")
-    create_epub(summary['id'])
+    epub_file = create_epub(summary['id'])
+    validate_epub(epub_file)
+    break
 
 logging.info("all epubs created successfully")
