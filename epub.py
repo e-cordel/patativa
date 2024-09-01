@@ -1,16 +1,16 @@
 # TODO: integrage this module with the project
-# usage python epub.py <ftp-user> <ftp-password>
 
+import ftplib
 import json
 import logging
+import os
 import requests
 import subprocess
-import os
-import ftplib
-import sys
 
-from ebooklib import epub
+from api.ecordel_api import create_api
 from config import API_URL
+from ebooklib import epub
+from unidecode import unidecode
 
 # logging configurations
 logging.basicConfig(level=logging.NOTSET)
@@ -18,8 +18,9 @@ logging.basicConfig(level=logging.NOTSET)
 # constants definition
 PT_BR = 'pt-BR'
 HOSTNAME = "ftp.turismonocariri.com.br"
-USERNAME = sys.argv[1]
-PASSWORD = sys.argv[2]
+USERNAME = os.environ.get("FTP_USERNAME").replace('\r', '')
+PASSWORD = os.environ.get("FTP_PASSWORD").replace('\r', '')
+ftp_server = ftplib.FTP(HOSTNAME, USERNAME, PASSWORD)
 
 # request configuration
 # it is necessary to avoid 406 error code when requesting the xilogravura image
@@ -56,10 +57,11 @@ def create_epub(id: int):
 
     # add cover image
     logging.info(f"downloading xilogravura: {cordel_data['xilogravuraUrl']}")
+    file_name = cordel_data['xilogravuraUrl'].split('/')[-1]
     xilogravura = requests.get(cordel_data['xilogravuraUrl'],headers=headers).content
-    with open("cover.jpg", 'wb') as f:
+    with open(file_name, 'wb') as f:
         f.write(xilogravura)
-    cordel.set_cover("cover.jpg", open('cover.jpg', 'rb').read())
+    cordel.set_cover(file_name, open(file_name, 'rb').read())
 
     # add cordel content
     cordel_content = cordel_data['content'].split('\n\n')
@@ -106,7 +108,7 @@ def create_epub(id: int):
 
     # write contents to the file
     normalized_name = str(cordel_data['title']).lower().replace(' ','-')
-    epub_file = f"epub/{normalized_name}.epub"
+    epub_file = f"epub/{unidecode(normalized_name)}.epub"
     epub.write_epub(epub_file, cordel)
     logging.info(f"new epub created {epub_file}")
     return epub_file
@@ -124,32 +126,29 @@ def validate_epub(epub_file: str):
 
 def upload_epub(epub_file: str):
     logging.info(f"uploading cordel {epub_file}...")
-    ftp_server = ftplib.FTP(HOSTNAME, USERNAME, PASSWORD)
     ftp_server.encoding = "utf-8"
     
     with open(epub_file, "rb") as file:
         # Command for Uploading the file "STOR filename"
         ftp_server.storbinary(f"STOR {epub_file.split('/')[1]}", file)
 
-    ftp_server.quit()
     return f"https://ebooks.ecordel.com.br/{epub_file.split('/')[1]}"
-
-def update_epub_link(epub_link: str):
-    # TODO call api to update the ebook_link
-    logging.info(epub_link)
 
 # get published cordels
 logging.info("loading cordels...")
+ecordel_api = create_api()
+# TODO use api module to fetch data
 published_cordels = json.loads(requests.get(f'{API_URL}/cordels/summaries?title=&published&size=30').text)
 
 for idx, summary in enumerate(published_cordels['content']):
     logging.info(f"creating epub {idx+1}/{len(published_cordels)} for {summary['title']}")
-    epub_file = create_epub(summary['id'])
+    id = summary['id']
+    epub_file = create_epub(id)
     validate_epub(epub_file)
     epub_link = upload_epub(epub_file)
-    update_epub_link(epub_link)
-    logging.info(f"epub {summary['title']} created")
-    # TODO remove break when script is done
-    break
+    epub_link = f"https://ebooks.ecordel.com.br/{epub_file.split('/')[1]}"
+    ecordel_api.set_ebook_url(cordel_id=id,ebook_url=epub_link)
+    logging.info(f"epub {id} created\n")
 
+ftp_server.quit()
 logging.info("all epubs created successfully")

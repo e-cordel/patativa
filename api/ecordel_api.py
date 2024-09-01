@@ -1,10 +1,13 @@
 from typing import Dict, List, Type
 
+import logging
+import os
 import requests
-from requests.api import head
 
+from config import API_AUTH_URL, API_URL
 from models import Cordel
 from models.cordel import Author
+from requests.api import head
 
 
 class APISession:
@@ -27,6 +30,7 @@ class APIAuthenticator:
     def authenticate(self) -> APISession:
 
         body = {"username": self.username, "password": self.password}
+        logging.info(f"loggin in as {self.username}")
 
         response = requests.post(url=self.api_url, json=body)
 
@@ -103,3 +107,33 @@ class EcordelApi:
         location = response.headers["Location"]
         id = location.split("/")[-1]
         return id
+    
+    def set_ebook_url(self, cordel_id: int, ebook_url: str):
+        logging.info(f"PUT id:{cordel_id} ebook-url:{ebook_url}")
+        endpoint = "cordels"
+        endpoint_url = f"{self.api_url}/{endpoint}/{cordel_id}/ebook-url"
+        headers = {"Authorization": f"Bearer {self.session.token}"}
+
+        response = requests.put(headers=headers, url=endpoint_url, data=ebook_url)
+
+        if response.status_code == 200:
+            logging.info("ebook-url successfully updated")
+        else:
+            raise Exception(f"An error occurred while updating ebook-url: {response.status_code}")
+
+def create_api() -> EcordelApi:
+    """
+    Cria uma instância do tipo EcordelApi pronta para uso.
+
+    Returns:
+        EcordelAPI: Instância da API pronta para uso.
+    """
+    api_username = os.environ.get("API_USERNAME").replace('\r', '')
+    api_password = os.environ.get("API_PASSWORD").replace('\r', '')
+    api_authenticator = APIAuthenticator(
+        username=api_username, password=api_password, endpoint_url_auth=API_AUTH_URL
+    )
+
+    session = api_authenticator.authenticate()
+    api = EcordelApi(sesssion=session, api_base_url=API_URL)
+    return api

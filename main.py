@@ -3,30 +3,12 @@ from typing import Dict, List
 
 from unidecode import unidecode
 
-from api.ecordel_api import APIAuthenticator, EcordelApi
+from api.ecordel_api import APIAuthenticator, EcordelApi, create_api
 from config import API_AUTH_URL, API_URL
 from helpers.file_helpers import save_json
 from models.author import Author
 from setup import Setup
 from repositories import RepositoryNetMundi
-
-
-def create_api() -> EcordelApi:
-    """
-    Cria uma instância do tipo EcordelApi pronta para uso.
-
-    Returns:
-        EcordelAPI: Instância da API pronta para uso.
-    """
-    api_username = os.environ.get("API_USERNAME")
-    api_password = os.environ.get("API_PASSWORD")
-    api_authenticator = APIAuthenticator(
-        username=api_username, password=api_password, endpoint_url_auth=API_AUTH_URL
-    )
-
-    session = api_authenticator.authenticate()
-    api = EcordelApi(sesssion=session, api_base_url=API_URL)
-    return api
 
 
 def create_all_authors(authors: List[Author], api: EcordelApi, created_authors: Dict):
