@@ -139,10 +139,12 @@ logging.info("loading cordels...")
 ecordel_api = create_api()
 # TODO use api module to fetch data
 published_cordels = json.loads(requests.get(f'{API_URL}/cordels/summaries?title=&published&size=30').text)
+missing_epubs = [3, 5, 15, 25, 29, 20, 39, 27, 38]
 
-for idx, summary in enumerate(published_cordels['content']):
-    logging.info(f"creating epub {idx+1}/{len(published_cordels)} for {summary['title']}")
-    id = summary['id']
+#for idx, summary in enumerate(published_cordels['content']):
+#    logging.info(f"creating epub {idx+1}/{len(published_cordels)} for {summary['title']}")
+#    id = summary['id']
+for id in missing_epubs:
     epub_file = create_epub(id)
     validate_epub(epub_file)
     epub_link = upload_epub(epub_file)
